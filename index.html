@@ -253,7 +253,6 @@ main{flex:1;width:100%;max-width:980px;margin:0 auto;padding:12px 18px 36px}
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const STORAGE='numberAdventure6yo_v1';
 const SKILLS={
-  subitize:'작은 수량 바로 알기',
   count:'하나씩 정확히 세기',
   symbol:'숫자 ↔ 수량 연결',
   compare:'많고 적음 비교',
@@ -302,7 +301,7 @@ function speak(text){
 }
 
 function weaknessWeights(){
- const w={subitize:1,count:1,symbol:1.15,compare:1,order:1,oneMore:1.05,structure:1};
+ const w={count:1,symbol:1.15,compare:1,order:1,oneMore:1.05,structure:1};
  for(const k in w){
    const s=data.skills[k]; if(s.q>=3){const acc=s.c/s.q; if(acc<.7)w[k]+=1.2; else if(acc<.85)w[k]+=.55;}
  }
@@ -323,12 +322,11 @@ function makeSession(focus89=false){
  const weights=weaknessWeights();
  for(let i=0;i<12;i++) qs.push(makeQuestion(weightedPick(weights),false));
  // ensure broad coverage
- if(qs.length>=7){qs[0]=makeQuestion('subitize');qs[1]=makeQuestion('count');qs[2]=makeQuestion('symbol');qs[3]=makeQuestion('compare');qs[4]=makeQuestion('order');qs[5]=makeQuestion('oneMore');qs[6]=makeQuestion('structure')}
- return shuffle(qs.slice(0,7)).concat(qs.slice(7));
+ if(qs.length>=6){qs[0]=makeQuestion('count');qs[1]=makeQuestion('symbol');qs[2]=makeQuestion('compare');qs[3]=makeQuestion('order');qs[4]=makeQuestion('oneMore');qs[5]=makeQuestion('structure')}
+ return shuffle(qs.slice(0,6)).concat(qs.slice(6));
 }
 function makeQuestion(type,focus89=false){
  const t=themes[theme];
- if(type==='subitize'){const n=rand(1,4);return{type,n,answer:n}}
  if(type==='count'){const n=focus89?[8,9][rand(0,1)]:rand(3,10);return{type,n,answer:n}}
  if(type==='symbol'){
    let n=focus89?[8,9][rand(0,1)]:rand(1,10);
@@ -363,7 +361,6 @@ function render(){
  $('#voiceRow').style.display=data.voice?'flex':'none';
  $('#feedback').classList.remove('show');
  const t=current.type;$('#levelName').textContent=SKILLS[t];$('#kicker').textContent=SKILLS[t];
- if(t==='subitize') renderSubitize();
  if(t==='count') renderCount();
  if(t==='symbol') renderSymbol();
  if(t==='compare') renderCompare();
@@ -377,12 +374,6 @@ function setAnswers(vals,answer,cb){
    const b=document.createElement('button');b.className='answer';b.textContent=v;b.dataset.value=v;
    b.onclick=()=>cb?cb(v,b):submit(Number(v),answer,b);wrap.appendChild(b)
  })
-}
-function renderSubitize(){
- $('#prompt').textContent='번쩍! 몇 개였을까?';$('#subprompt').textContent='작은 수량은 하나씩 세지 않고 한눈에 알아봐요.';
- const field=$('#playfield');const n=current.n;const box=document.createElement('div');box.className='flash-grid';
- for(let i=0;i<n;i++){const d=document.createElement('div');d.className='dot';box.appendChild(d)}field.appendChild(box);
- setTimeout(()=>{box.style.visibility='hidden';setAnswers(optionsAround(n),n)},850)
 }
 function renderCount(){
  $('#prompt').textContent=`${themes[theme].goal}을 하나씩 눌러 세어보자!`;
