@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+<meta name="theme-color" content="#4666ff" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="숫자 탐험대" />
+<link rel="manifest" href="./manifest.webmanifest" />
+<link rel="apple-touch-icon" href="./icons/icon-180.png" />
+<link rel="icon" type="image/png" href="./icons/icon-192.png" />
+<title>숫자 탐험대</title>
+<style>
+:root{
+  --bg:#f6f7fb;--card:#fff;--ink:#172033;--muted:#6f7890;--line:#dde3ef;
+  --primary:#4666ff;--primary2:#7d91ff;--good:#2eaa70;--bad:#ef6a6a;--sun:#ffce54;
+  --shadow:0 14px 40px rgba(39,53,91,.12);--r:28px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Segoe UI",sans-serif;color:var(--ink);background:linear-gradient(180deg,#f8f9ff,#f3f7fb)}
+button{font:inherit}
+#app{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}
+body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
+.topbar{padding-top:max(0px,env(safe-area-inset-top))}
+main{padding-bottom:calc(36px + env(safe-area-inset-bottom))}
+button{-webkit-touch-callout:none;touch-action:manipulation}
+.install-tip{display:none;background:#eef1ff;border:1px solid #cdd5ff;color:#36405c;border-radius:18px;padding:12px 14px;margin:0 0 14px;font-size:13px;line-height:1.5}
+.install-tip.show{display:block}
+.ios-note{font-size:12px;color:var(--muted);margin-top:8px}
+.topbar{height:68px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;max-width:980px;width:100%;margin:auto}
+.brand{font-weight:900;font-size:20px;letter-spacing:-.5px}
+.brand b{color:var(--primary)}
+.top-actions{display:flex;gap:8px}
+.ghost{border:1px solid var(--line);background:#fff;border-radius:14px;padding:10px 14px;font-weight:800;color:#48526b;cursor:pointer}
+main{flex:1;width:100%;max-width:980px;margin:0 auto;padding:12px 18px 36px}
+.screen{display:none}
+.screen.active{display:block}
+.hero{background:var(--card);border-radius:36px;padding:34px;box-shadow:var(--shadow);overflow:hidden;position:relative}
+.hero h1{font-size:clamp(34px,6vw,58px);line-height:1.08;margin:0 0 14px;letter-spacing:-2px}
+.hero p{font-size:18px;color:var(--muted);line-height:1.65;margin:0 0 24px}
+.theme-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px}
+.theme-card{border:3px solid transparent;background:#f7f8fc;border-radius:26px;padding:22px;text-align:left;cursor:pointer;transition:.18s transform,.18s border-color}
+.theme-card:hover,.theme-card.selected{transform:translateY(-2px);border-color:var(--primary)}
+.theme-emoji{font-size:74px;display:block;margin-bottom:8px}
+.theme-card h3{font-size:24px;margin:0 0 6px}
+.theme-card p{font-size:14px;margin:0}
+.start-row{display:flex;gap:12px;align-items:center;margin-top:22px;flex-wrap:wrap}
+.primary{border:0;background:linear-gradient(135deg,var(--primary),#6f82ff);color:#fff;border-radius:18px;padding:16px 24px;font-weight:900;font-size:18px;cursor:pointer;box-shadow:0 9px 22px rgba(70,102,255,.25)}
+.primary:disabled{opacity:.45;cursor:not-allowed}
+.secondary{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:18px;padding:15px 20px;font-weight:900;cursor:pointer}
+.tip{font-size:13px;color:var(--muted)}
+.game-shell{background:var(--card);border-radius:34px;box-shadow:var(--shadow);padding:20px;min-height:650px;position:relative;overflow:hidden}
+.hud{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px}
+.hud-left{display:flex;align-items:center;gap:10px}
+.avatar{width:54px;height:54px;border-radius:18px;background:#f0f3ff;display:grid;place-items:center;font-size:34px}
+.levelname{font-size:13px;color:var(--muted);font-weight:800}
+.progress{height:12px;background:#edf0f6;border-radius:20px;overflow:hidden;margin-top:4px;width:min(42vw,360px)}
+.progress>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--primary),#8da0ff);border-radius:20px;transition:.35s}
+.score{font-weight:900;background:#fff7dc;padding:10px 14px;border-radius:16px;justify-self:end}
+.question-wrap{display:flex;flex-direction:column;align-items:center;text-align:center;padding:24px 8px 10px}
+.kicker{font-size:15px;font-weight:900;color:var(--primary);margin-bottom:8px}
+.prompt{font-size:clamp(27px,5vw,42px);font-weight:950;letter-spacing:-1px;margin:0 0 8px}
+.subprompt{font-size:15px;color:var(--muted);min-height:22px}
+.playfield{min-height:320px;display:flex;align-items:center;justify-content:center;position:relative;padding:16px}
+.objects{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:16px;max-width:640px}
+.obj{width:76px;height:76px;border:0;border-radius:24px;background:#f3f5fb;display:grid;place-items:center;font-size:45px;cursor:pointer;transition:.15s transform,.15s background,.15s opacity}
+.obj:hover{transform:scale(1.04)}
+.obj.counted{background:#e6faef;transform:scale(.92);opacity:.78}
+.obj.counted::after{content:attr(data-count);position:absolute;font-size:15px;font-weight:900;background:var(--good);color:white;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;margin:50px 0 0 50px}
+.flash-grid{display:grid;grid-template-columns:repeat(5,38px);gap:12px}
+.dot{width:38px;height:38px;border-radius:50%;background:#26344f}
+.answers{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:8px}
+.answer{min-width:96px;height:88px;border:2px solid var(--line);background:#fff;border-radius:24px;font-size:42px;font-weight:950;color:var(--ink);cursor:pointer;box-shadow:0 6px 14px rgba(38,52,79,.06);transition:.15s}
+.answer:hover{transform:translateY(-2px);border-color:#aab7ff}
+.answer.good{border-color:var(--good);background:#eafaf2}
+.answer.bad{border-color:var(--bad);background:#fff0f0;animation:shake .25s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.big-number{font-size:clamp(110px,22vw,190px);font-weight:1000;line-height:1;color:#16203a;letter-spacing:-9px}
+.compare-wrap{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:20px;width:min(760px,100%)}
+.quantity-card{border:2px solid var(--line);border-radius:28px;padding:18px;min-height:210px;display:flex;flex-wrap:wrap;align-content:center;justify-content:center;gap:9px;cursor:pointer;background:#fafbfe}
+.quantity-card:hover{border-color:#aab7ff}
+.quantity-card .mini{font-size:34px}
+.vs{font-size:24px;font-weight:950;color:#98a0b2}
+.track{display:flex;align-items:center;gap:6px;width:min(820px,100%);overflow-x:auto;padding:22px 4px}
+.track-cell{min-width:62px;height:72px;border-radius:18px;background:#f0f3f8;border:2px solid #e0e5ef;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:26px;font-weight:950;position:relative;cursor:pointer}
+.track-cell.target{border-color:var(--sun);box-shadow:0 0 0 4px #fff3bd}
+.track-cell .runner{position:absolute;top:-42px;font-size:34px;filter:drop-shadow(0 4px 3px rgba(0,0,0,.12));transition:.35s}
+.tenframe{display:grid;grid-template-columns:repeat(5,62px);grid-template-rows:repeat(2,62px);gap:8px;padding:16px;background:#f3f5f9;border-radius:22px}
+.tenframe span{border:3px solid #cbd3e2;border-radius:14px;display:grid;place-items:center;font-size:38px;background:#fff}
+.tenframe span.filled{background:#fff4d2}
+.voice-row{display:flex;justify-content:center;gap:10px;margin-top:18px}
+.mic{border:0;background:#fff1f2;border-radius:18px;padding:12px 18px;font-weight:900;cursor:pointer;color:#d64e61}
+.mic.listening{animation:pulse 1s infinite;background:#ffe3e6}
+@keyframes pulse{50%{transform:scale(1.04)}}
+.feedback{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(255,255,255,.80);backdrop-filter:blur(4px);z-index:20}
+.feedback.show{display:flex}
+.feedback-card{background:#fff;border-radius:34px;padding:26px 32px;text-align:center;box-shadow:var(--shadow);max-width:440px}
+.feedback-emoji{font-size:72px}
+.feedback h3{font-size:30px;margin:4px 0 6px}
+.feedback p{margin:0;color:var(--muted);font-size:16px;line-height:1.5}
+.feedback .primary{margin-top:16px}
+.parent-wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:18px}
+.panel{background:#fff;border-radius:28px;padding:24px;box-shadow:var(--shadow)}
+.panel h2,.panel h3{margin-top:0}
+.metric-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.metric{background:#f7f8fc;padding:16px;border-radius:18px}
+.metric b{font-size:26px;display:block}
+.metric span{font-size:13px;color:var(--muted)}
+.skill{margin:14px 0}
+.skill-head{display:flex;justify-content:space-between;font-size:14px;font-weight:800}
+.bar{height:10px;border-radius:10px;background:#edf0f5;overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;background:var(--primary);border-radius:10px}
+.confusion{width:100%;border-collapse:collapse}
+.confusion th,.confusion td{padding:10px;border-bottom:1px solid var(--line);text-align:center}
+.confusion th{font-size:13px;color:var(--muted)}
+.history{max-height:290px;overflow:auto}
+.history-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
+.note{background:#fff9e8;border:1px solid #ffe19b;border-radius:18px;padding:14px;font-size:14px;line-height:1.55}
+.settings{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.pill{border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 12px;font-size:13px;font-weight:800;cursor:pointer}
+.pill.on{background:#eef1ff;border-color:#afbbff;color:#3854dd}
+.small{font-size:12px;color:var(--muted)}
+.one-more{display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:center}
+.setbox{display:flex;flex-wrap:wrap;gap:9px;max-width:360px;justify-content:center}
+.plusone{font-size:42px;font-weight:950;color:var(--primary)}
+.reveal{animation:pop .35s}
+@keyframes pop{0%{transform:scale(.3)}70%{transform:scale(1.12)}100%{transform:scale(1)}}
+@media(max-width:720px){
+  .hero{padding:24px 20px}.theme-grid{grid-template-columns:1fr}.game-shell{padding:14px;min-height:620px}
+  .hud{grid-template-columns:1fr auto}.hud>div:nth-child(2){display:none}.progress{width:48vw}
+  .obj{width:64px;height:64px;font-size:38px}.compare-wrap{gap:9px}.quantity-card{min-height:180px;padding:10px}.quantity-card .mini{font-size:28px}
+  .track-cell{min-width:52px;height:66px}.parent-wrap{grid-template-columns:1fr}.metric-grid{grid-template-columns:repeat(2,1fr)}
+  .tenframe{grid-template-columns:repeat(5,48px);grid-template-rows:repeat(2,48px)}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="topbar">
+    <div class="brand">🔢 <b>숫자</b> 탐험대</div>
+    <div class="top-actions">
+      <button class="ghost" id="parentBtn">부모 화면</button>
+    </div>
+  </div>
+
+  <main>
+    <section id="home" class="screen active">
+      <div id="installTip" class="install-tip">
+        <b>아이폰 홈 화면에 추가할 수 있어요.</b><br>
+        Safari의 공유 버튼 → <b>홈 화면에 추가</b>를 누르면 다음부터 앱처럼 바로 열립니다.
+      </div>
+      <div class="hero">
+        <h1>세고, 찾고, 달리며<br>숫자를 진짜로 이해해요.</h1>
+        <p>1~10 수량과 숫자를 연결하고, 8·9처럼 헷갈리는 숫자는 아이의 오답에 맞춰 더 자주 연습합니다.</p>
+        <div class="theme-grid">
+          <button class="theme-card selected" data-theme="dino">
+            <span class="theme-emoji">🦖🥚</span>
+            <h3>공룡알 탐험</h3>
+            <p>공룡알을 세고 숫자길을 따라 공룡을 만나러 가요.</p>
+          </button>
+          <button class="theme-card" data-theme="car">
+            <span class="theme-emoji">🏎️🚦</span>
+            <h3>숫자 레이싱</h3>
+            <p>차고의 자동차를 세고 숫자 트랙을 달려요.</p>
+          </button>
+        </div>
+        <div class="start-row">
+          <button class="primary" id="startBtn">탐험 시작하기</button>
+          <button class="secondary" id="quick89">8·9 집중 연습</button>
+          <span class="tip">권장: 하루 8~12분</span><div class="ios-note" id="voiceSupportNote"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="game" class="screen">
+      <div class="game-shell">
+        <div class="hud">
+          <div class="hud-left">
+            <div class="avatar" id="avatar">🦖</div>
+            <div>
+              <div class="levelname" id="levelName">숫자 탐험</div>
+              <div class="progress"><i id="progressBar"></i></div>
+            </div>
+          </div>
+          <div class="small" id="sessionText">1 / 12</div>
+          <div class="score" id="scoreText">⭐ 0</div>
+        </div>
+
+        <div class="question-wrap">
+          <div class="kicker" id="kicker">숫자 탐험</div>
+          <div class="prompt" id="prompt">몇 개일까?</div>
+          <div class="subprompt" id="subprompt"></div>
+        </div>
+
+        <div class="playfield" id="playfield"></div>
+        <div class="answers" id="answers"></div>
+        <div class="voice-row" id="voiceRow">
+          <button class="mic" id="micBtn">🎤 숫자로 말하기</button>
+        </div>
+
+        <div class="feedback" id="feedback">
+          <div class="feedback-card">
+            <div class="feedback-emoji" id="feedbackEmoji">🎉</div>
+            <h3 id="feedbackTitle">정답!</h3>
+            <p id="feedbackText"></p>
+            <button class="primary" id="nextBtn">다음</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="parent" class="screen">
+      <div class="parent-wrap">
+        <div class="panel">
+          <h2>부모용 학습 기록</h2>
+          <p class="small">정답률 하나보다, 어떤 능력에서 막히는지를 따로 봅니다.</p>
+          <div class="metric-grid">
+            <div class="metric"><b id="totalQ">0</b><span>총 풀이 수</span></div>
+            <div class="metric"><b id="overallAcc">-</b><span>전체 정답률</span></div>
+            <div class="metric"><b id="streakBest">0</b><span>최고 연속 정답</span></div>
+            <div class="metric"><b id="sessions">0</b><span>완료 세션</span></div>
+          </div>
+          <h3 style="margin-top:24px">능력별 상태</h3>
+          <div id="skillList"></div>
+          <div class="note" id="parentInsight">아직 학습 기록이 없습니다. 한 세션을 진행하면 아이가 어느 부분에서 헷갈리는지 보여드릴게요.</div>
+        </div>
+        <div class="panel">
+          <h3>8·9 혼동 기록</h3>
+          <table class="confusion">
+            <tr><th>정답</th><th>8로 대답</th><th>9로 대답</th></tr>
+            <tr><th>8</th><td id="c88">0</td><td id="c89">0</td></tr>
+            <tr><th>9</th><td id="c98">0</td><td id="c99">0</td></tr>
+          </table>
+          <h3 style="margin-top:24px">최근 기록</h3>
+          <div id="history" class="history"></div>
+          <div class="settings">
+            <button class="pill on" id="soundToggle">🔊 소리 켬</button>
+            <button class="pill on" id="voiceToggle">🎤 음성버튼 켬</button>
+            <button class="pill" id="resetBtn">기록 초기화</button>
+          </div>
+          <div style="margin-top:18px">
+            <button class="primary" id="backHome">아이 화면으로</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+(() => {
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const STORAGE='numberAdventure6yo_v1';
+const SKILLS={
+  subitize:'작은 수량 바로 알기',
+  count:'하나씩 정확히 세기',
+  symbol:'숫자 ↔ 수량 연결',
+  compare:'많고 적음 비교',
+  order:'수의 순서 / 숫자길',
+  oneMore:'하나 더 / 하나 덜',
+  structure:'5와 10으로 묶어 보기'
+};
+const defaultData=()=>({
+  total:0, correct:0, bestStreak:0, sessions:0,
+  skills:Object.fromEntries(Object.keys(SKILLS).map(k=>[k,{q:0,c:0}])),
+  confusion:{'8':{'8':0,'9':0},'9':{'8':0,'9':0}},
+  history:[], sound:true, voice:true
+});
+let data;
+try{data=JSON.parse(localStorage.getItem(STORAGE))||defaultData()}catch(e){data=defaultData()}
+for(const k in defaultData()) if(data[k]===undefined) data[k]=defaultData()[k];
+
+let theme='dino', mode='normal', session=[], idx=0, stars=0, streak=0, answered=false;
+let current=null, counted=0, recognition=null, firstAttemptRecorded=false;
+
+const themes={
+ dino:{avatar:'🦖',object:'🥚',objectAlt:'🦕',runner:'🦖',goal:'공룡알'},
+ car:{avatar:'🏎️',object:'🚗',objectAlt:'🚙',runner:'🏎️',goal:'자동차'}
+};
+
+function save(){localStorage.setItem(STORAGE,JSON.stringify(data))}
+function show(id){$$('.screen').forEach(x=>x.classList.remove('active'));$('#'+id).classList.add('active')}
+function rand(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function shuffle(a){return a.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(x=>x[1])}
+function optionsAround(n,count=3,min=1,max=10){
+ let s=new Set([n]); let pool=shuffle([...Array(max-min+1)].map((_,i)=>i+min).filter(x=>x!==n).sort((a,b)=>Math.abs(a-n)-Math.abs(b-n)).slice(0,5));
+ for(const x of pool){s.add(x);if(s.size>=count)break}
+ return shuffle([...s])
+}
+function beep(ok=true){
+ if(!data.sound) return;
+ const C=window.AudioContext||window.webkitAudioContext;if(!C)return;
+ const ctx=new C(),o=ctx.createOscillator(),g=ctx.createGain();
+ o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.value=ok?720:220;
+ g.gain.setValueAtTime(.001,ctx.currentTime);g.gain.exponentialRampToValueAtTime(.18,ctx.currentTime+.02);g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.28);
+ o.start();o.stop(ctx.currentTime+.3)
+}
+function speak(text){
+ if(!data.sound || !('speechSynthesis'in window))return;
+ speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='ko-KR';u.rate=.9;speechSynthesis.speak(u)
+}
+
+function weaknessWeights(){
+ const w={subitize:1,count:1,symbol:1.15,compare:1,order:1,oneMore:1.05,structure:1};
+ for(const k in w){
+   const s=data.skills[k]; if(s.q>=3){const acc=s.c/s.q; if(acc<.7)w[k]+=1.2; else if(acc<.85)w[k]+=.55;}
+ }
+ const conf=(data.confusion['8']['9']||0)+(data.confusion['9']['8']||0);
+ if(conf>=2){w.symbol+=1.2;w.oneMore+=.8;w.order+=.5;w.structure+=.65}
+ return w
+}
+function weightedPick(weights){
+ const arr=Object.entries(weights);const sum=arr.reduce((a,[,v])=>a+v,0);let r=Math.random()*sum;
+ for(const [k,v] of arr){r-=v;if(r<=0)return k}return arr[0][0]
+}
+function makeSession(focus89=false){
+ const qs=[];
+ if(focus89){
+   const types=['symbol','oneMore','order','structure','compare','symbol','oneMore','order','structure','count','symbol','compare'];
+   return types.map((t,i)=>makeQuestion(t,true));
+ }
+ const weights=weaknessWeights();
+ for(let i=0;i<12;i++) qs.push(makeQuestion(weightedPick(weights),false));
+ // ensure broad coverage
+ if(qs.length>=7){qs[0]=makeQuestion('subitize');qs[1]=makeQuestion('count');qs[2]=makeQuestion('symbol');qs[3]=makeQuestion('compare');qs[4]=makeQuestion('order');qs[5]=makeQuestion('oneMore');qs[6]=makeQuestion('structure')}
+ return shuffle(qs.slice(0,7)).concat(qs.slice(7));
+}
+function makeQuestion(type,focus89=false){
+ const t=themes[theme];
+ if(type==='subitize'){const n=rand(1,4);return{type,n,answer:n}}
+ if(type==='count'){const n=focus89?[8,9][rand(0,1)]:rand(3,10);return{type,n,answer:n}}
+ if(type==='symbol'){
+   let n=focus89?[8,9][rand(0,1)]:rand(1,10);
+   return{type,n,answer:n,variant:Math.random()<.5?'numberToQty':'qtyToNumber'}
+ }
+ if(type==='compare'){
+   let a,b;
+   if(focus89 && Math.random()<.7){[a,b]=Math.random()<.5?[8,9]:[9,8]}
+   else{a=rand(2,9);do{b=rand(2,10)}while(b===a)}
+   return{type,a,b,answer:a>b?'left':'right'}
+ }
+ if(type==='order'){
+   let n=focus89?[8,9][rand(0,1)]:rand(2,9);return{type,n,answer:n}
+ }
+ if(type==='oneMore'){
+   let base=focus89?8:rand(2,8);return{type,base,answer:base+1}
+ }
+ if(type==='structure'){
+   let n=focus89?[8,9][rand(0,1)]:rand(5,10);return{type,n,answer:n}
+ }
+}
+function start(focus=false){
+ mode=focus?'focus89':'normal';session=makeSession(focus);idx=0;stars=0;streak=0;answered=false;
+ $('#avatar').textContent=themes[theme].avatar;show('game');render()
+}
+function render(){
+ answered=false;counted=0;firstAttemptRecorded=false;current=session[idx];
+ $('#sessionText').textContent=`${idx+1} / ${session.length}`;
+ $('#progressBar').style.width=`${(idx/session.length)*100}%`;
+ $('#scoreText').textContent=`⭐ ${stars}`;
+ $('#playfield').innerHTML='';$('#answers').innerHTML='';
+ $('#voiceRow').style.display=data.voice?'flex':'none';
+ $('#feedback').classList.remove('show');
+ const t=current.type;$('#levelName').textContent=SKILLS[t];$('#kicker').textContent=SKILLS[t];
+ if(t==='subitize') renderSubitize();
+ if(t==='count') renderCount();
+ if(t==='symbol') renderSymbol();
+ if(t==='compare') renderCompare();
+ if(t==='order') renderOrder();
+ if(t==='oneMore') renderOneMore();
+ if(t==='structure') renderStructure();
+}
+function setAnswers(vals,answer,cb){
+ const wrap=$('#answers');wrap.innerHTML='';
+ vals.forEach(v=>{
+   const b=document.createElement('button');b.className='answer';b.textContent=v;b.dataset.value=v;
+   b.onclick=()=>cb?cb(v,b):submit(Number(v),answer,b);wrap.appendChild(b)
+ })
+}
+function renderSubitize(){
+ $('#prompt').textContent='번쩍! 몇 개였을까?';$('#subprompt').textContent='작은 수량은 하나씩 세지 않고 한눈에 알아봐요.';
+ const field=$('#playfield');const n=current.n;const box=document.createElement('div');box.className='flash-grid';
+ for(let i=0;i<n;i++){const d=document.createElement('div');d.className='dot';box.appendChild(d)}field.appendChild(box);
+ setTimeout(()=>{box.style.visibility='hidden';setAnswers(optionsAround(n),n)},850)
+}
+function renderCount(){
+ $('#prompt').textContent=`${themes[theme].goal}을 하나씩 눌러 세어보자!`;
+ $('#subprompt').textContent='누를 때마다 숫자가 붙어요. 다 세면 아래에서 답을 골라요.';
+ const box=document.createElement('div');box.className='objects';
+ for(let i=0;i<current.n;i++){
+   const b=document.createElement('button');b.className='obj';b.textContent=themes[theme].object;b.dataset.id=i;
+   b.onclick=()=>{if(answered||b.classList.contains('counted'))return;counted++;b.classList.add('counted');b.dataset.count=counted;speak(String(counted));if(counted===current.n)setAnswers(optionsAround(current.n),current.n)}
+   box.appendChild(b)
+ }$('#playfield').appendChild(box)
+}
+function renderSymbol(){
+ if(current.variant==='numberToQty'){
+   $('#prompt').textContent=`숫자 ${current.n}와 같은 수량을 찾아줘.`;
+   $('#subprompt').textContent='숫자의 모양과 “몇 개”를 연결해요.';
+   const big=document.createElement('div');big.className='big-number';big.textContent=current.n;$('#playfield').appendChild(big);
+   const vals=shuffle([...new Set(optionsAround(current.n,3).map(x=>Math.max(1,x)))]);
+   const wrap=$('#answers');wrap.innerHTML='';
+   vals.forEach(n=>{
+      const b=document.createElement('button');b.className='quantity-card';b.style.minHeight='110px';b.style.minWidth='150px';
+      for(let i=0;i<n;i++){const s=document.createElement('span');s.className='mini';s.textContent=themes[theme].object;b.appendChild(s)}
+      b.onclick=()=>submit(n,current.answer,b);wrap.appendChild(b)
+   })
+ }else{
+   $('#prompt').textContent='이건 몇 개일까? 숫자를 골라줘.';
+   $('#subprompt').textContent='세어서 알아낸 수량을 숫자 기호와 연결해요.';
+   const box=document.createElement('div');box.className='objects';
+   for(let i=0;i<current.n;i++){const s=document.createElement('div');s.className='obj';s.textContent=themes[theme].object;box.appendChild(s)}
+   $('#playfield').appendChild(box);setAnswers(optionsAround(current.n),current.n)
+ }
+}
+function renderCompare(){
+ $('#prompt').textContent='어느 쪽이 더 많을까?';$('#subprompt').textContent='눈으로 보고, 필요하면 직접 세어봐요.';
+ const w=document.createElement('div');w.className='compare-wrap';
+ function card(n,side){const c=document.createElement('button');c.className='quantity-card';for(let i=0;i<n;i++){const s=document.createElement('span');s.className='mini';s.textContent=themes[theme].objectAlt;c.appendChild(s)}c.onclick=()=>submit(side,current.answer,c);return c}
+ w.append(card(current.a,'left'));const vs=document.createElement('div');vs.className='vs';vs.textContent='VS';w.append(vs);w.append(card(current.b,'right'));$('#playfield').append(w)
+}
+function renderOrder(){
+ $('#prompt').textContent=`${current.n}번 칸을 찾아 ${themes[theme].runner}를 보내줘!`;
+ $('#subprompt').textContent='숫자의 순서와 위치를 익혀요.';
+ const tr=document.createElement('div');tr.className='track';
+ for(let n=1;n<=10;n++){
+   const c=document.createElement('button');c.className='track-cell';c.textContent=n;
+   if(n===current.n)c.classList.add('target');
+   c.onclick=()=>{const old=$('.runner');if(old)old.remove();const r=document.createElement('div');r.className='runner';r.textContent=themes[theme].runner;c.appendChild(r);setTimeout(()=>submit(n,current.answer,c),300)}
+   tr.appendChild(c)
+ }$('#playfield').appendChild(tr)
+}
+function renderOneMore(){
+ $('#prompt').textContent=`${current.base}에서 하나 더 오면 몇 개일까?`;
+ $('#subprompt').textContent='“하나 더”는 숫자길에서 바로 다음 수예요.';
+ const w=document.createElement('div');w.className='one-more';const a=document.createElement('div');a.className='setbox';
+ for(let i=0;i<current.base;i++){const s=document.createElement('span');s.style.fontSize='38px';s.textContent=themes[theme].object;a.appendChild(s)}
+ const plus=document.createElement('div');plus.className='plusone';plus.textContent='+';
+ const one=document.createElement('div');one.className='obj reveal';one.textContent=themes[theme].object;
+ w.append(a,plus,one);$('#playfield').appendChild(w);setAnswers(optionsAround(current.answer),current.answer)
+}
+function renderStructure(){
+ $('#prompt').textContent='10칸 상자에 몇 개가 찼을까?';
+ $('#subprompt').textContent='윗줄 5개를 기준으로 보면 더 빨리 알 수 있어요.';
+ const frame=document.createElement('div');frame.className='tenframe';
+ for(let i=0;i<10;i++){
+   const cell=document.createElement('span');
+   if(i<current.n){cell.classList.add('filled');cell.textContent='●'}
+   frame.appendChild(cell)
+ }
+ $('#playfield').appendChild(frame);
+ setAnswers(optionsAround(current.n),current.n)
+}
+function submit(val,answer,el,source='tap'){
+ if(answered)return;
+ const ok=val===answer;const skill=current.type;
+ // 진단 통계는 각 문제의 첫 답만 기록합니다. 이후 재도전은 학습 과정으로 처리합니다.
+ if(!firstAttemptRecorded){
+   firstAttemptRecorded=true;
+   data.total++;data.skills[skill].q++;
+   if(ok){data.correct++;data.skills[skill].c++}
+   if((answer===8||answer===9)&&(val===8||val===9)) data.confusion[String(answer)][String(val)]++;
+   data.history.unshift({ts:Date.now(),skill,ok,answer,val,source});
+   data.history=data.history.slice(0,80);save();
+ }
+ if(ok){
+   stars++;streak++;data.bestStreak=Math.max(data.bestStreak,streak);save();
+   el?.classList.add('good');beep(true);answered=true;showFeedback(true,answer)
+ }else{
+   streak=0;el?.classList.add('bad');beep(false);guidedCorrection(answer,val,el)
+ }
+}
+function guidedCorrection(answer,val,el){
+ $('#subprompt').textContent=`${val}이라고 생각했구나. 한 번 더 확인해보자!`;
+ if(current.type==='count'||current.type==='symbol'){
+   speak(`다시 세어보자. 정답은 ${answer}이야.`);
+ } else if(current.type==='oneMore'){
+   speak(`${current.base}에서 하나 더 가면 ${answer}이야.`);
+ } else if(current.type==='order'){
+   speak(`${answer}은 숫자길에서 이 위치야.`);
+ } else if(current.type==='structure'){
+   speak(`윗줄 다섯 개를 먼저 보고, 아래칸을 이어서 보면 ${answer}개야.`);
+ } else speak(`다시 생각해보자.`);
+ setTimeout(()=>{
+   const target=[...$('#answers').children].find(x=>Number(x.dataset.value)===answer || x.textContent.trim()===String(answer));
+   if(target){target.style.borderColor='#ffce54';target.style.boxShadow='0 0 0 5px #fff1b5'}
+ },250)
+}
+function showFeedback(ok,answer){
+ $('#feedbackEmoji').textContent=theme==='dino'?'🦖✨':'🏎️✨';
+ $('#feedbackTitle').textContent='좋았어!';
+ let msg='정확하게 찾았어.';
+ if(current.type==='oneMore')msg=`${current.base}에서 하나 더 오면 ${answer}!`;
+ if(current.type==='order')msg=`${answer}의 위치를 잘 찾았어.`;
+ if(current.type==='structure')msg=`5개를 기준으로 묶어 보니 ${answer}개를 빠르게 알 수 있네!`;
+ if((answer===8||answer===9))msg=`${answer}은 “${answer===8?'여덟':'아홉'}”이고, 수량도 ${answer}개야.`;
+ $('#feedbackText').textContent=msg;$('#feedback').classList.add('show');speak(msg)
+}
+function next(){
+ if(idx>=session.length-1){
+   data.sessions++;save();$('#progressBar').style.width='100%';
+   $('#feedbackEmoji').textContent=theme==='dino'?'🏆🦕':'🏁🏆';$('#feedbackTitle').textContent='오늘 탐험 완료!';
+   $('#feedbackText').textContent=`문제 ${session.length}개를 끝냈어. 별 ${stars}개를 모았어!`;
+   $('#nextBtn').textContent='처음으로';$('#nextBtn').onclick=()=>{$('#nextBtn').textContent='다음';$('#nextBtn').onclick=next;show('home')};return
+ }
+ idx++;render()
+}
+
+function initVoice(){
+ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SR){
+   $('#micBtn').textContent='🎤 음성인식 미지원 — 터치로 답해요';
+   $('#micBtn').disabled=true;
+   if(isIOS()) $('#voiceRow').style.display='none';
+   return
+ }
+ recognition=new SR();recognition.lang='ko-KR';recognition.interimResults=false;recognition.maxAlternatives=3;
+ recognition.onstart=()=>{$('#micBtn').classList.add('listening');$('#micBtn').textContent='듣고 있어요…'}
+ recognition.onend=()=>{$('#micBtn').classList.remove('listening');$('#micBtn').textContent='🎤 숫자로 말하기'}
+ recognition.onerror=()=>{$('#subprompt').textContent='음성을 잘 못 들었어요. 아래 숫자를 눌러도 돼요.'}
+ recognition.onresult=e=>{
+   const raw=[...e.results[0]].map(x=>x.transcript).join(' ');
+   const map={'일':1,'하나':1,'한':1,'이':2,'둘':2,'삼':3,'셋':3,'사':4,'넷':4,'오':5,'다섯':5,'육':6,'여섯':6,'칠':7,'일곱':7,'팔':8,'여덟':8,'구':9,'아홉':9,'십':10,'열':10};
+   let v=null;const digit=raw.match(/10|[1-9]/);if(digit)v=Number(digit[0]);else for(const [k,n] of Object.entries(map))if(raw.includes(k)){v=n;break}
+   if(v==null){$('#subprompt').textContent=`“${raw}”로 들었어요. 숫자를 한 번 더 말하거나 눌러주세요.`;return}
+   let ans=current.answer;
+   if(current.type==='compare'||current.type==='count') {$('#subprompt').textContent='이 문제는 화면을 눌러 답해 주세요.';return}
+   const el=[...$('#answers').children].find(x=>x.textContent.trim()===String(v));
+   submit(v,ans,el,'voice')
+ }
+}
+function renderParent(){
+ const acc=data.total?Math.round(data.correct/data.total*100)+'%':'-';
+ $('#totalQ').textContent=data.total;$('#overallAcc').textContent=acc;$('#streakBest').textContent=data.bestStreak;$('#sessions').textContent=data.sessions;
+ const list=$('#skillList');list.innerHTML='';
+ for(const [k,label] of Object.entries(SKILLS)){
+   const s=data.skills[k];const pct=s.q?Math.round(s.c/s.q*100):0;
+   const d=document.createElement('div');d.className='skill';d.innerHTML=`<div class="skill-head"><span>${label}</span><span>${s.q?pct+'%':'아직 없음'}</span></div><div class="bar"><i style="width:${pct}%"></i></div>`;list.appendChild(d)
+ }
+ $('#c88').textContent=data.confusion['8']['8'];$('#c89').textContent=data.confusion['8']['9'];$('#c98').textContent=data.confusion['9']['8'];$('#c99').textContent=data.confusion['9']['9'];
+ const hist=$('#history');hist.innerHTML='';data.history.slice(0,14).forEach(h=>{
+   const d=document.createElement('div');d.className='history-row';const dt=new Date(h.ts);d.innerHTML=`<span>${h.ok?'✅':'↩️'} ${SKILLS[h.skill]}</span><span>${dt.toLocaleDateString('ko-KR',{month:'numeric',day:'numeric'})}</span>`;hist.appendChild(d)
+ });
+ if(!data.history.length)hist.innerHTML='<div class="small">아직 기록이 없습니다.</div>';
+ const weak=Object.entries(data.skills).filter(([,s])=>s.q>=4).sort((a,b)=>(a[1].c/a[1].q)-(b[1].c/b[1].q))[0];
+ const conf89=data.confusion['8']['9']+data.confusion['9']['8'];
+ let ins='지금은 여러 영역을 고르게 경험하는 단계입니다.';
+ if(conf89>=2)ins=`8과 9를 서로 바꿔 답한 기록이 ${conf89}회 있습니다. 다음 일반 세션에서도 숫자↔수량 연결, 하나 더, 숫자길 문제가 자동으로 조금 더 자주 나옵니다.`;
+ else if(weak){const p=Math.round(weak[1].c/weak[1].q*100);ins=`현재 가장 더 연습하면 좋은 영역은 “${SKILLS[weak[0]]}”입니다(정답률 ${p}%). 다음 세션에서 이 유형의 비중이 자동으로 높아집니다.`}
+ $('#parentInsight').textContent=ins;
+ $('#soundToggle').classList.toggle('on',data.sound);$('#soundToggle').textContent=data.sound?'🔊 소리 켬':'🔇 소리 끔';
+ $('#voiceToggle').classList.toggle('on',data.voice);$('#voiceToggle').textContent=data.voice?'🎤 음성버튼 켬':'🎤 음성버튼 끔';
+}
+
+$$('.theme-card').forEach(b=>b.onclick=()=>{$$('.theme-card').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');theme=b.dataset.theme});
+$('#startBtn').onclick=()=>start(false);$('#quick89').onclick=()=>start(true);$('#nextBtn').onclick=next;
+$('#parentBtn').onclick=()=>{renderParent();show('parent')};$('#backHome').onclick=()=>show('home');
+$('#soundToggle').onclick=()=>{data.sound=!data.sound;save();renderParent()};
+$('#voiceToggle').onclick=()=>{data.voice=!data.voice;save();renderParent()};
+$('#resetBtn').onclick=()=>{if(confirm('학습 기록을 모두 초기화할까요?')){data=defaultData();save();renderParent()}};
+$('#micBtn').onclick=()=>{if(recognition)try{recognition.start()}catch(e){}};
+
+function isIOS(){
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+}
+function isStandalone(){
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+function setupMobileUX(){
+  const tip=$('#installTip');
+  if(isIOS() && !isStandalone()) tip.classList.add('show');
+  else tip.classList.remove('show');
+
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  const note=$('#voiceSupportNote');
+  if(isIOS()){
+    if(SR) note.textContent='아이폰에서는 음성인식 상태에 따라 터치 답변이 더 안정적일 수 있어요.';
+    else note.textContent='이 아이폰에서는 음성인식 대신 화면 터치로 모든 문제를 풀 수 있어요.';
+  } else {
+    note.textContent=SR?'음성 답변과 터치 답변을 모두 사용할 수 있어요.':'음성인식 미지원 환경에서는 터치로 답할 수 있어요.';
+  }
+
+  // iOS standalone: prevent accidental page bounce / pinch zoom gestures
+  document.addEventListener('gesturestart', e=>e.preventDefault(), {passive:false});
+}
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+}
+setupMobileUX();
+initVoice();
+})();
+</script>
+</body>
+</html>
